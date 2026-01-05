@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart AI Fahrzeuganalyse – Nemotron</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 2rem;
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+    textarea, input[type=text] {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.75rem;
+      background-color: #1e1e1e;
+      border: none;
+      border-radius: 1rem;
+      color: #f0f0f0;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 2rem;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    button:hover {
+      background-color: #357ABD;
+    }
+    .response {
+      background-color: #1e1e1e;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      border-radius: 1.5rem;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Smart AI Fahrzeuganalyse (Nemotron VL)</h1>
+
+  <label>Mobile-Link oder Fahrzeugbeschreibung:</label>
+  <textarea id="carInput" rows="5" placeholder="Mobile-Link einfügen oder Fahrzeugbeschreibung eingeben..."></textarea>
+
+  <button onclick="analyzeCar()">Analysieren</button>
+
+  <div id="response" class="response"></div>
+
+  <script>
+    async function analyzeCar() {
+      const input = document.getElementById("carInput").value.trim();
+      const responseDiv = document.getElementById("response");
+
+      if (!input) {
+        alert("Bitte einen Link oder Text eingeben.");
+        return;
+      }
+
+      responseDiv.textContent = "Analyse läuft …";
+
+      try {
+        const result = await callNemotron(input);
+        responseDiv.textContent = result;
+      } catch (err) {
+        responseDiv.textContent = "Fehler: " + err.message;
+      }
+    }
+
+    async function callNemotron(carInput) {
+      const res = await fetch("https://nemotron-backend.onrender.com/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: carInput,
+          question: `
+            Wenn es ein mobile.de Link ist:
+            • Scrape die wichtigsten Fahrzeugdaten von der Seite
+            • Extrahiere Baujahr, Laufleistung, Preis, Motorisierung, Getriebe, Ausstattung etc.
+
+            Wenn es eine Beschreibung ist:
+            • Analysiere die Beschreibung inhaltlich
+
+            Gib danach IMMER strukturiert aus:
+
+            1️⃣ Fahrzeug-Kerndaten
+            - Hersteller
+            - Modell
+            - Baujahr
+            - Motorisierung
+            - Getriebe
+            - Leistung
+            - Laufleistung (falls vorhanden)
+            - Preis (falls vorhanden)
+
+            2️⃣ Typische Zuverlässigkeit & Schwachstellen
+            3️⃣ Laufleistungs-Risiko
+            4️⃣ Unterhaltskosten realistisch
+            5️⃣ Verbrauch & Alltag
+            6️⃣ Stärken
+            7️⃣ Schwächen
+            8️⃣ Für wen geeignet?
+
+            Benutze klares, verständliches Deutsch.
+          `
+        })
+      });
+
+      if (!res.ok) throw new Error("Backend-Fehler");
+
+      const data = await res.json();
+      return data.answer || "Keine Antwort erhalten.";
+    }
+  </script>
+</body>
+</html>
+
