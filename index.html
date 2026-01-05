@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="de">
 <head>
   <meta charset="UTF-8">
@@ -58,12 +58,14 @@
     async function analyzeCar() {
       const input = document.getElementById("carInput").value.trim();
       const responseDiv = document.getElementById("response");
+      const button = document.querySelector("button");
 
       if (!input) {
         alert("Bitte einen Link oder Text eingeben.");
         return;
       }
 
+      button.disabled = true;
       responseDiv.textContent = "Analyse läuft …";
 
       try {
@@ -71,6 +73,8 @@
         responseDiv.textContent = result;
       } catch (err) {
         responseDiv.textContent = "Fehler: " + err.message;
+      } finally {
+        button.disabled = false;
       }
     }
 
@@ -113,7 +117,10 @@
         })
       });
 
-      if (!res.ok) throw new Error("Backend-Fehler");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Backend-Fehler");
+      }
 
       const data = await res.json();
       return data.answer || "Keine Antwort erhalten.";
@@ -121,4 +128,5 @@
   </script>
 </body>
 </html>
+
 
