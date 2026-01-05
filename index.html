@@ -45,7 +45,7 @@
 </head>
 
 <body>
-  <h1>Smart AI Fahrzeuganalyse (Nemotron VL)</h1>
+  <h1>AI Fahrzeuganalyse</h1>
 
   <label>Mobile-Link oder Fahrzeugbeschreibung:</label>
   <textarea id="carInput" rows="5" placeholder="Mobile-Link einfügen oder Fahrzeugbeschreibung eingeben..."></textarea>
@@ -75,7 +75,7 @@
     }
 
     async function callNemotron(carInput) {
-      const res = await fetch("https://nemotron-backend.onrender.com/api/analyze", {
+      const res = await fetch("https://autoanalyse-backend.onrender.com/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
