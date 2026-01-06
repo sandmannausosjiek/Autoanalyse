@@ -55,77 +55,60 @@
   <div id="response" class="response"></div>
 
   <script>
-    async function analyzeCar() {
-      const input = document.getElementById("carInput").value.trim();
-      const responseDiv = document.getElementById("response");
-      const button = document.querySelector("button");
+  async function analyzeCar() {
+    const input = document.getElementById("carInput").value.trim();
+    const responseDiv = document.getElementById("response");
+    const button = document.querySelector("button");
 
-      if (!input) {
-        alert("Bitte einen Link oder Text eingeben.");
-        return;
-      }
-
-      button.disabled = true;
-      responseDiv.textContent = "Analyse läuft …";
-
-      try {
-        const result = await callNemotron(input);
-        responseDiv.textContent = result;
-      } catch (err) {
-        responseDiv.textContent = "Fehler: " + err.message;
-      } finally {
-        button.disabled = false;
-      }
+    if (!input) {
+      alert("Bitte einen Link oder Text eingeben.");
+      return;
     }
 
-    async function callNemotron(carInput) {
-      const res = await fetch("https://autoanalyse-backend.onrender.com/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: carInput,
-          question: `
-            Wenn es ein mobile.de Link ist:
-            • Scrape die wichtigsten Fahrzeugdaten von der Seite
-            • Extrahiere Baujahr, Laufleistung, Preis, Motorisierung, Getriebe, Ausstattung etc.
+    button.disabled = true;
+    responseDiv.textContent = "Analyse läuft …";
 
-            Wenn es eine Beschreibung ist:
-            • Analysiere die Beschreibung inhaltlich
-
-            Gib danach IMMER strukturiert aus:
-
-            1️⃣ Fahrzeug-Kerndaten
-            - Hersteller
-            - Modell
-            - Baujahr
-            - Motorisierung
-            - Getriebe
-            - Leistung
-            - Laufleistung (falls vorhanden)
-            - Preis (falls vorhanden)
-
-            2️⃣ Typische Zuverlässigkeit & Schwachstellen
-            3️⃣ Laufleistungs-Risiko
-            4️⃣ Unterhaltskosten realistisch
-            5️⃣ Verbrauch & Alltag
-            6️⃣ Stärken
-            7️⃣ Schwächen
-            8️⃣ Für wen geeignet?
-
-            Benutze klares, verständliches Deutsch.
-          `
-        })
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Backend-Fehler");
-      }
-
-      const data = await res.json();
-      return data.answer || "Keine Antwort erhalten.";
+    try {
+      const result = await callNemotron(input);
+      responseDiv.textContent = result;
+    } catch (err) {
+      responseDiv.textContent = "⚠️ Fehler: " + err.message;
+    } finally {
+      button.disabled = false;
     }
-  </script>
+  }
+
+  async function callNemotron(carInput) {
+
+    const res = await fetch("https://autoanalyse-backend.onrender.com/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: carInput,
+        question: "Bitte analysiere dieses Fahrzeug strukturiert."
+      })
+    });
+
+    let data = null;
+
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error("Ungültige Antwort vom Server");
+    }
+
+    // 🎯 NEU: auch bei Fehlern sinnvolle Meldungen anzeigen
+    if (!res.ok) {
+      throw new Error(data.error || "Unbekannter Serverfehler");
+    }
+
+    if (!data.answer) {
+      throw new Error("Server hat keine Antwort zurückgegeben");
+    }
+
+    return data.answer;
+  }
+</script>
 </body>
 </html>
 
